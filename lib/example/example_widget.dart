@@ -1,7 +1,7 @@
-import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ExampleWidget extends StatefulWidget {
   const ExampleWidget({super.key});
@@ -11,74 +11,52 @@ class ExampleWidget extends StatefulWidget {
 }
 
 class _ExampleWidgetState extends State<ExampleWidget> {
-  var _posts = <dynamic>[];
-  Future<void> onLoading() async {
-    final url = Uri.parse('https://jsonplaceholder.typicode.com/posts');
-    final response = await get(url);
-    final json = jsonDecode(response.body) as List<dynamic>;
-    _posts += json;
+  var _value = 0;
+  Future<void> _loadData() async {
+    final sharedPreferences = await SharedPreferences.getInstance();
+    _value = sharedPreferences.getInt('age') ?? 0;
     setState(() {});
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Provider(state: this, child: const _View());
+  void initState() {
+    super.initState();
+    _loadData();
   }
-}
-
-class _View extends StatelessWidget {
-  const _View({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final state = context.dependOnInheritedWidgetOfExactType<Provider>()!.state;
     return Scaffold(
       body: SafeArea(
+        child: Center(
           child: Column(
-        children: [
-          ElevatedButton(
-              onPressed: state.onLoading, child: const Text('Loading post')),
-          Expanded(
-              child: ListView.builder(
-            itemCount: state._posts.length,
-            itemBuilder: (context, index) {
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  children: [
-                    Text(state._posts[index]['title']),
-                    Text(state._posts[index]['id'].toString())
-                  ],
-                ),
-              );
-            },
-          ))
-        ],
-      )),
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text("$_value"),
+              ElevatedButton(
+                onPressed: () async {
+                  _value += 1;
+                  final sharedPreferences =
+                      await SharedPreferences.getInstance();
+                  await sharedPreferences.setInt('age', _value);
+                  setState(() {});
+                },
+                child: const Text('+'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  _value = max(_value -= 1, 0);
+                  final sharedPreferences =
+                      await SharedPreferences.getInstance();
+                  await sharedPreferences.setInt('age', _value);
+                  setState(() {});
+                },
+                child: const Text('-'),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
-  }
-}
-
-class Provider extends InheritedWidget {
-  final _ExampleWidgetState state;
-  const Provider({
-    required this.state,
-    required super.child,
-  });
-
-  static Provider? watch(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<Provider>();
-  }
-
-  static Provider? read(BuildContext context) {
-    final widget =
-        context.getElementForInheritedWidgetOfExactType<Provider>()?.widget;
-    return widget is Provider ? widget : null;
-  }
-
-  @override
-  bool updateShouldNotify(InheritedWidget oldWidget) {
-    // TODO: implement updateShouldNotify
-    return child != oldWidget.child;
   }
 }
