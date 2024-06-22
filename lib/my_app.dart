@@ -1,5 +1,6 @@
 import 'package:architecture_studying/example/example_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -10,7 +11,8 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       debugShowCheckedModeBanner: false,
       routes: {
-        '/': (context) => const ExampleWidget(),
+        '/': (context) => ChangeNotifierProvider.value(
+            value: ViewModel(), child: const ExampleWidget()),
       },
     );
   }
