@@ -1,73 +1,106 @@
-import 'dart:math';
-
+import 'package:architecture_studying/domain/services/user_servise.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+class VieWModelState {
+  final String ageTitle;
+
+  VieWModelState({required this.ageTitle});
+}
 
 class ViewModel extends ChangeNotifier {
-  var _age = 0;
+  final _userServise = UserServise();
+  var _state = VieWModelState(ageTitle: '');
 
-  int get age => _age;
+  VieWModelState get state => _state;
 
   ViewModel() {
-    _loadData();
+    loadValue();
   }
 
-  Future<void> _loadData() async {
-    final sharedPreferences = await SharedPreferences.getInstance();
-    _age = sharedPreferences.getInt('age') ?? 0;
-    notifyListeners();
+  Future<void> loadValue() async {
+    await _userServise.loadValue();
+    _updateState();
+    // final sharedPreferences = await SharedPreferences.getInstance();
+    // _age = sharedPreferences.getInt('age') ?? 0;
+    // notifyListeners();
   }
 
-  Future<void> increment() async {
-    _age += 1;
-    final sharedPreferences = await SharedPreferences.getInstance();
-    await sharedPreferences.setInt('age', _age);
-    notifyListeners();
+  void onIncrementButtonPressed() {
+    _userServise.increment();
+    _updateState();
   }
 
-  Future<void> decrement() async {
-    _age = max(_age - 1, 0);
-    final sharedPreferences = await SharedPreferences.getInstance();
-    await sharedPreferences.setInt('age', _age);
+  void onDecrementButtonPressed() {
+    _userServise.decrement();
+    _updateState();
+    // _age = max(_age - 1, 0);
+    // final sharedPreferences = await SharedPreferences.getInstance();
+    // await sharedPreferences.setInt('age', _age);
+    // notifyListeners();
+  }
+
+  void _updateState() {
+    final user = _userServise.user;
+    _state = VieWModelState(ageTitle: user.age.toString());
     notifyListeners();
   }
 }
 
-class ExampleWidget extends StatefulWidget {
+class ExampleWidget extends StatelessWidget {
   const ExampleWidget({super.key});
 
   @override
-  State<ExampleWidget> createState() => _ExampleWidgetState();
-}
-
-class _ExampleWidgetState extends State<ExampleWidget> {
-  @override
   Widget build(BuildContext context) {
-    final model = context.watch<ViewModel>();
-    return Scaffold(
+    return const Scaffold(
       body: SafeArea(
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text("${model._age}"),
-              ElevatedButton(
-                onPressed: () async {
-                  model.increment();
-                },
-                child: const Text('+'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  model.decrement();
-                },
-                child: const Text('-'),
-              ),
+              _AgeTitle(),
+              _AgeIncrementWidget(),
+              _AgeDecrementWidget(),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class _AgeTitle extends StatelessWidget {
+  const _AgeTitle({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final title = context.select((ViewModel vm) => vm.state.ageTitle);
+    return Text(title);
+  }
+}
+
+class _AgeIncrementWidget extends StatelessWidget {
+  const _AgeIncrementWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final model = context.read<ViewModel>();
+    return ElevatedButton(
+      onPressed: model.onIncrementButtonPressed,
+      child: const Text('+'),
+    );
+  }
+}
+
+class _AgeDecrementWidget extends StatelessWidget {
+  const _AgeDecrementWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final model = context.read<ViewModel>();
+    return ElevatedButton(
+      onPressed: model.onDecrementButtonPressed,
+      child: const Text('-'),
     );
   }
 }
