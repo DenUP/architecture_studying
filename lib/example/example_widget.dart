@@ -1,6 +1,8 @@
-import 'package:architecture_studying/domain/services/user_servise.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import '../domain/data_provider/user_data_provider.dart';
+import '../domain/services/user_servise.dart';
 
 class VieWModelState {
   final String ageTitle;
@@ -10,6 +12,7 @@ class VieWModelState {
 
 class ViewModel extends ChangeNotifier {
   final _userServise = UserServise();
+  final userDataProvider = UserDataProvider();
   var _state = VieWModelState(ageTitle: '');
 
   VieWModelState get state => _state;
@@ -19,7 +22,7 @@ class ViewModel extends ChangeNotifier {
   }
 
   Future<void> loadValue() async {
-    await _userServise.loadValue();
+    await _userServise.initialize();
     _updateState();
     // final sharedPreferences = await SharedPreferences.getInstance();
     // _age = sharedPreferences.getInt('age') ?? 0;
