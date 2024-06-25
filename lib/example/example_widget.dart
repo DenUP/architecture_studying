@@ -45,7 +45,9 @@ class ViewModel extends ChangeNotifier {
 
   void _updateState() {
     final user = _userServise.user;
-    _state = VieWModelState(ageTitle: user.age.toString());
+    _state = VieWModelState(
+      ageTitle: user.age.toString(),
+    );
     notifyListeners();
   }
 }
