@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../domain/data_provider/user_data_provider.dart';
-import '../domain/services/user_servise.dart';
+import '../../domain/data_provider/user_data_provider.dart';
+import '../../domain/services/user_servise.dart';
 
-class VieWModelState {
+class _VieWModelState {
   final String ageTitle;
 
-  VieWModelState({required this.ageTitle});
+  _VieWModelState({required this.ageTitle});
 }
 
-class ViewModel extends ChangeNotifier {
+class _ViewModel extends ChangeNotifier {
   final _userServise = UserServise();
   final userDataProvider = UserDataProvider();
-  var _state = VieWModelState(ageTitle: '');
+  var _state = _VieWModelState(ageTitle: '');
 
-  VieWModelState get state => _state;
+  _VieWModelState get state => _state;
 
-  ViewModel() {
+  _ViewModel() {
     loadValue();
   }
 
@@ -45,7 +45,7 @@ class ViewModel extends ChangeNotifier {
 
   void _updateState() {
     final user = _userServise.user;
-    _state = VieWModelState(
+    _state = _VieWModelState(
       ageTitle: user.age.toString(),
     );
     notifyListeners();
@@ -54,6 +54,11 @@ class ViewModel extends ChangeNotifier {
 
 class ExampleWidget extends StatelessWidget {
   const ExampleWidget({super.key});
+
+  static Widget create() {
+    return ChangeNotifierProvider.value(
+        value: _ViewModel(), child: const ExampleWidget());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +84,7 @@ class _AgeTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title = context.select((ViewModel vm) => vm.state.ageTitle);
+    final title = context.select((_ViewModel vm) => vm.state.ageTitle);
     return Text(title);
   }
 }
@@ -89,7 +94,7 @@ class _AgeIncrementWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final model = context.read<ViewModel>();
+    final model = context.read<_ViewModel>();
     return ElevatedButton(
       onPressed: model.onIncrementButtonPressed,
       child: const Text('+'),
@@ -102,7 +107,7 @@ class _AgeDecrementWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final model = context.read<ViewModel>();
+    final model = context.read<_ViewModel>();
     return ElevatedButton(
       onPressed: model.onDecrementButtonPressed,
       child: const Text('-'),
