@@ -1,3 +1,5 @@
+import 'package:architecture_studying/domain/services/auth_servise.dart';
+import 'package:architecture_studying/ui/navigation/main_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -11,6 +13,7 @@ class _VieWModelState {
 }
 
 class _ViewModel extends ChangeNotifier {
+  final _authServise = AuthServise();
   final _userServise = UserServise();
   final userDataProvider = UserDataProvider();
   var _state = _VieWModelState(ageTitle: '');
@@ -43,6 +46,11 @@ class _ViewModel extends ChangeNotifier {
     // notifyListeners();
   }
 
+  Future<void> onLogoutPressed(BuildContext context) async {
+    await _authServise.logout();
+    MainNavigation.showLoader(context);
+  }
+
   void _updateState() {
     final user = _userServise.user;
     _state = _VieWModelState(
@@ -62,8 +70,18 @@ class ExampleWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: SafeArea(
+    // final model = context.read<_ViewModel>()._sessionDataProvider.clearApiKey;
+    final model = context.read<_ViewModel>();
+    return Scaffold(
+      appBar: AppBar(
+        actions: [
+          ElevatedButton(
+            onPressed: () => model.onLogoutPressed(context),
+            child: const Text('Выход'),
+          )
+        ],
+      ),
+      body: const SafeArea(
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,

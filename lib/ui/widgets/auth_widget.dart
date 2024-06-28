@@ -1,4 +1,4 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:architecture_studying/ui/navigation/main_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -15,7 +15,7 @@ class _ViewModelState {
   _ViewModelAuthButtonState get authButtonState {
     if (isAuthInProcess) {
       return _ViewModelAuthButtonState.authProcess;
-    } else if (login.isNotEmpty && password.isNotEmpty) {
+    } else if (login.trim().isNotEmpty && password.trim().isNotEmpty) {
       return _ViewModelAuthButtonState.canSubmit;
     } else {
       return _ViewModelAuthButtonState.disable;
@@ -42,19 +42,18 @@ class _ViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> onAuthButtonPressed() async {
+  Future<void> onAuthButtonPressed(BuildContext context) async {
     final login = _state.login;
     final password = _state.password;
-    if (login.isEmpty || password.isEmpty) {
-      _state.authErrorTitle = '';
-      _state.isAuthInProcess = true;
-      notifyListeners();
-    }
+    if (login.isEmpty || password.isEmpty) return;
+    _state.authErrorTitle = '';
+    _state.isAuthInProcess = true;
+    notifyListeners();
 
     try {
       await _authServise.login(login, password);
-      _state.authErrorTitle = '';
       _state.isAuthInProcess = false;
+      MainNavigation.showLoader(context);
       notifyListeners();
     } on AuthProviderIncorectLoginDataError {
       _state.authErrorTitle = 'Неправильный логин или пароль';
@@ -169,7 +168,7 @@ class _AuthButtonWidget extends StatelessWidget {
         ? const CircularProgressIndicator()
         : const Text('Войти');
     return ElevatedButton(
-      onPressed: onPressed,
+      onPressed: () => onPressed?.call(context),
       child: child,
     );
   }
