@@ -14,11 +14,12 @@ class AuthService {
     }
   }
 
-  Future<bool> login(String login, String password) async {
-    return true;
+  Future<void> login(String login, String password) async {
+    final key = await _authApiProvider.login(login, password);
+    await _sessionDataProvider.saveApiKey(key.toString());
   }
 
   Future<void> logout() async {
-    return;
+    await _sessionDataProvider.clearApiKey();
   }
 }
