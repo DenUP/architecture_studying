@@ -39,6 +39,7 @@ dependencies:
   shared_preferences: ^2.2.3
   provider: ^6.1.2
   copy_with_extension: ^4.0.0
+  flutter_secure_storage: ^9.2.2
 
 dev_dependencies:
   flutter_test:
