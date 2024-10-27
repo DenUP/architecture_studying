@@ -1,4 +1,5 @@
 import 'package:architecture_studying/ui/home.dart';
+import 'package:architecture_studying/ui/widgets/auth_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
@@ -8,8 +9,11 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      initialRoute: '',
-      routes: {'/': (context) => const Home()},
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const AuthWidget(),
+        '/home': (context) => const Home()
+      },
     );
   }
 }
