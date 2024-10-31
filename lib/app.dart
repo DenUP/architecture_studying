@@ -11,7 +11,7 @@ class App extends StatelessWidget {
     return MaterialApp(
       initialRoute: '/',
       routes: {
-        '/': (context) => const AuthWidget(),
+        '/': (context) => AuthWidget.create(),
         '/home': (context) => const Home()
       },
     );
