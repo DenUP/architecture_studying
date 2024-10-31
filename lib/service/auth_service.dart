@@ -11,7 +11,7 @@ class AuthService {
       return true;
     } else {
       return false;
-    }
+    } 
   }
 
   Future<void> login(String login, String password) async {

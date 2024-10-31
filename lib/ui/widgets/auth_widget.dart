@@ -4,31 +4,41 @@ import 'package:architecture_studying/service/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-enum _ViewModelAuthButtonState { CanSumbit, AuthProgress, Disable }
+enum _ViewModelAuthButtonState { canSumbit, authProgress, disable }
 
 class _ViewModelState {
   final String errorTitle;
   final String login;
   final String password;
-  final _ViewModelAuthButtonState buttonState;
+  final bool isAuthInProcess;
+  _ViewModelAuthButtonState get authButtonState {
+    if (isAuthInProcess) {
+      return _ViewModelAuthButtonState.authProgress;
+    } else if (login.isNotEmpty && password.isNotEmpty) {
+      return _ViewModelAuthButtonState.canSumbit;
+    } else {
+      return _ViewModelAuthButtonState.disable;
+    }
+  }
 
-  _ViewModelState(
-      {this.errorTitle = '',
-      this.login = '',
-      this.password = '',
-      this.buttonState = _ViewModelAuthButtonState.CanSumbit});
+  _ViewModelState({
+    this.errorTitle = '',
+    this.login = '',
+    this.password = '',
+    this.isAuthInProcess = false,
+  });
 
   _ViewModelState copyWith({
     String? errorTitle,
     String? login,
     String? password,
-    _ViewModelAuthButtonState? buttonState,
+    bool? isProcess,
   }) {
     return _ViewModelState(
       errorTitle: errorTitle ?? this.errorTitle,
       login: login ?? this.login,
       password: password ?? this.password,
-      buttonState: buttonState ?? this.buttonState,
+      isAuthInProcess: isProcess ?? this.isAuthInProcess,
     );
   }
 }
@@ -46,22 +56,27 @@ class _ViewModel extends ChangeNotifier {
 
   void changePassword(String value) {
     if (_state.password == value) return;
-    _state = _state.copyWith(login: value);
+    _state = _state.copyWith(password: value);
     notifyListeners();
   }
 
   Future<void> onAuthButtonPrecess() async {
     final login = _state.login;
     final password = _state.password;
-    if (login.isEmpty || password.isEmpty) return;
 
+    if (login.isEmpty || password.isEmpty) return;
+    _state = _state.copyWith(errorTitle: '', isProcess: true);
     try {
       await _authService.login(login, password);
+      _state = _state.copyWith(errorTitle: '', isProcess: false);
     } on AuthApiProviderIsCorrectLoginDataProvider {
-      _state = _state.copyWith(errorTitle: 'Неправильный логин или пароль');
+      _state = _state.copyWith(
+          errorTitle: 'Неправильный логин или пароль', isProcess: false);
     } catch (exeption) {
-      _state = _state.copyWith(errorTitle: 'Не удалось понять ошибку');
+      _state = _state.copyWith(
+          errorTitle: 'Не удалось понять ошибку', isProcess: false);
     }
+    notifyListeners();
   }
 }
 
@@ -160,11 +175,11 @@ class AuthButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final model = context.read<_ViewModel>();
     final buttonState =
-        context.select((_ViewModel value) => value.state.buttonState);
-    final onPressed = buttonState == _ViewModelAuthButtonState.CanSumbit
+        context.select((_ViewModel value) => value.state.authButtonState);
+    final onPressed = buttonState == _ViewModelAuthButtonState.canSumbit
         ? model.onAuthButtonPrecess
         : null;
-    final child = buttonState == _ViewModelAuthButtonState.AuthProgress
+    final child = buttonState == _ViewModelAuthButtonState.authProgress
         ? const CircularProgressIndicator()
         : const Text('Авторизоваться');
     return ElevatedButton(onPressed: onPressed, child: child);
