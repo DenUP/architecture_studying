@@ -2,43 +2,44 @@
 import 'package:architecture_studying/domain/data_provider/auth_api_provider.dart';
 import 'package:architecture_studying/service/auth_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
-enum _ViewModelAuthButtonState { canSumbit, authProgress, disable }
+enum _ViewModelStateButton { canSumbit, isProcess, disable }
 
 class _ViewModelState {
-  final String errorTitle;
+  final String errorText;
   final String login;
   final String password;
-  final bool isAuthInProcess;
-  _ViewModelAuthButtonState get authButtonState {
-    if (isAuthInProcess) {
-      return _ViewModelAuthButtonState.authProgress;
+  final bool isProcess;
+  _ViewModelStateButton get buttonState {
+    if (isProcess == true) {
+      return _ViewModelStateButton.isProcess;
     } else if (login.isNotEmpty && password.isNotEmpty) {
-      return _ViewModelAuthButtonState.canSumbit;
+      return _ViewModelStateButton.canSumbit;
     } else {
-      return _ViewModelAuthButtonState.disable;
+      return _ViewModelStateButton.disable;
     }
   }
 
   _ViewModelState({
-    this.errorTitle = '',
+    this.errorText = '',
     this.login = '',
     this.password = '',
-    this.isAuthInProcess = false,
+    this.isProcess = false,
   });
 
   _ViewModelState copyWith({
-    String? errorTitle,
+    String? errorText,
     String? login,
     String? password,
     bool? isProcess,
   }) {
     return _ViewModelState(
-      errorTitle: errorTitle ?? this.errorTitle,
+      errorText: errorText ?? this.errorText,
       login: login ?? this.login,
       password: password ?? this.password,
-      isAuthInProcess: isProcess ?? this.isAuthInProcess,
+      isProcess: isProcess ?? this.isProcess,
     );
   }
 }
@@ -48,33 +49,30 @@ class _ViewModel extends ChangeNotifier {
   var _state = _ViewModelState();
   _ViewModelState get state => _state;
 
-  void changeLogin(String value) {
+  Future<void> changeLogin(String value) async {
     if (_state.login == value) return;
     _state = _state.copyWith(login: value);
     notifyListeners();
   }
 
-  void changePassword(String value) {
+  Future<void> changePassword(String value) async {
     if (_state.password == value) return;
     _state = _state.copyWith(password: value);
     notifyListeners();
   }
 
-  Future<void> onAuthButtonPrecess() async {
+  Future<void> onClickButton() async {
     final login = _state.login;
     final password = _state.password;
-
     if (login.isEmpty || password.isEmpty) return;
-    _state = _state.copyWith(errorTitle: '', isProcess: true);
+    _state = _state.copyWith(errorText: '', isProcess: true);
     try {
       await _authService.login(login, password);
-      _state = _state.copyWith(errorTitle: '', isProcess: false);
-    } on AuthApiProviderIsCorrectLoginDataProvider {
-      _state = _state.copyWith(
-          errorTitle: 'Неправильный логин или пароль', isProcess: false);
+      _state = _state.copyWith(errorText: '', isProcess: false);
+    } on AuthErrorApiDataProvider {
+      _state = _state.copyWith(errorText: 'Ошибка данных', isProcess: false);
     } catch (exeption) {
-      _state = _state.copyWith(
-          errorTitle: 'Не удалось понять ошибку', isProcess: false);
+      _state = _state.copyWith(errorText: 'Другая ошибочка', isProcess: false);
     }
     notifyListeners();
   }
@@ -100,19 +98,13 @@ class AuthWidget extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ErrorText(),
+              errorText(),
+              authFormLogin(),
               SizedBox(
                 height: 20,
               ),
-              FormAuthLogin(),
-              SizedBox(
-                height: 20,
-              ),
-              FormAuthPassword(),
-              SizedBox(
-                height: 20,
-              ),
-              AuthButton()
+              authFormPassword(),
+              onClickAuthButton()
             ],
           ),
         ),
@@ -121,65 +113,61 @@ class AuthWidget extends StatelessWidget {
   }
 }
 
-class FormAuthLogin extends StatelessWidget {
-  const FormAuthLogin({super.key});
+class errorText extends StatelessWidget {
+  const errorText({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final errorText =
+        context.select((_ViewModel value) => value._state.errorText);
+    return Text(errorText);
+  }
+}
+
+class authFormLogin extends StatelessWidget {
+  const authFormLogin({super.key});
 
   @override
   Widget build(BuildContext context) {
     final model = context.read<_ViewModel>();
     return TextFormField(
-      decoration: InputDecoration(
+      decoration: const InputDecoration(
           label: Text('Логин'),
           border: OutlineInputBorder(
-              borderSide: BorderSide(width: 2, color: Colors.black12))),
+              borderRadius: BorderRadius.all(Radius.circular(2)))),
       onChanged: model.changeLogin,
     );
   }
 }
 
-class FormAuthPassword extends StatelessWidget {
-  const FormAuthPassword({super.key});
+class authFormPassword extends StatelessWidget {
+  const authFormPassword({super.key});
 
   @override
   Widget build(BuildContext context) {
     final model = context.read<_ViewModel>();
     return TextFormField(
-      decoration: InputDecoration(
+      onChanged: model.changePassword,
+      decoration: const InputDecoration(
           label: Text('Пароль'),
           border: OutlineInputBorder(
-              borderSide: BorderSide(width: 2, color: Colors.black12))),
-      onChanged: model.changePassword,
+              borderRadius: BorderRadius.all(Radius.circular(2)))),
     );
   }
 }
 
-class ErrorText extends StatelessWidget {
-  const ErrorText({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final authErrorText = context.select(
-      (_ViewModel value) => value.state.errorTitle,
-    );
-    return Text(
-      authErrorText,
-      style: TextStyle(color: Colors.red),
-    );
-  }
-}
-
-class AuthButton extends StatelessWidget {
-  const AuthButton({super.key});
+class onClickAuthButton extends StatelessWidget {
+  const onClickAuthButton({super.key});
 
   @override
   Widget build(BuildContext context) {
     final model = context.read<_ViewModel>();
     final buttonState =
-        context.select((_ViewModel value) => value.state.authButtonState);
-    final onPressed = buttonState == _ViewModelAuthButtonState.canSumbit
-        ? model.onAuthButtonPrecess
+        context.select((_ViewModel value) => value._state.buttonState);
+    final onPressed = buttonState == _ViewModelStateButton.canSumbit
+        ? model.onClickButton
         : null;
-    final child = buttonState == _ViewModelAuthButtonState.authProgress
+    final child = buttonState == _ViewModelStateButton.isProcess
         ? const CircularProgressIndicator()
         : const Text('Авторизоваться');
     return ElevatedButton(onPressed: onPressed, child: child);
