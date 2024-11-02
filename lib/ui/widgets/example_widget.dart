@@ -1,4 +1,5 @@
 import 'package:architecture_studying/service/auth_service.dart';
+import 'package:architecture_studying/ui/widgets/navigation/mainNavigation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -7,7 +8,7 @@ class _ViewModel extends ChangeNotifier {
 
   Future<void> onClickButtonLogOut(context) async {
     await _authService.logOut();
-    Navigator.of(context).pushNamedAndRemoveUntil('/', (router) => false);
+    Mainnavigation.showLoader(context);
   }
 }
 
