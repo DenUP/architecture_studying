@@ -1,6 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:architecture_studying/domain/data_provider/auth_api_provider.dart';
 import 'package:architecture_studying/service/auth_service.dart';
+import 'package:architecture_studying/ui/widgets/navigation/mainNavigation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
@@ -69,7 +70,7 @@ class _ViewModel extends ChangeNotifier {
     try {
       await _authService.login(login, password);
       _state = _state.copyWith(errorText: '', isProcess: false);
-      Navigator.of(context).pushNamed('/');
+      Mainnavigation.showLoader(context);
     } on AuthErrorApiDataProvider {
       _state = _state.copyWith(errorText: 'Ошибка данных', isProcess: false);
     } catch (exeption) {
@@ -171,6 +172,7 @@ class onClickAuthButton extends StatelessWidget {
     final child = buttonState == _ViewModelStateButton.isProcess
         ? const CircularProgressIndicator()
         : const Text('Авторизоваться');
-    return ElevatedButton(onPressed: () => onPressed?.call(context), child: child);
+    return ElevatedButton(
+        onPressed: () => onPressed?.call(context), child: child);
   }
 }
