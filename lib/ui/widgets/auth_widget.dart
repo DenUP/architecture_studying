@@ -61,7 +61,7 @@ class _ViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> onClickButton() async {
+  Future<void> onClickButton(context) async {
     final login = _state.login;
     final password = _state.password;
     if (login.isEmpty || password.isEmpty) return;
@@ -69,6 +69,7 @@ class _ViewModel extends ChangeNotifier {
     try {
       await _authService.login(login, password);
       _state = _state.copyWith(errorText: '', isProcess: false);
+      Navigator.of(context).pushNamed('/');
     } on AuthErrorApiDataProvider {
       _state = _state.copyWith(errorText: 'Ошибка данных', isProcess: false);
     } catch (exeption) {
@@ -170,6 +171,6 @@ class onClickAuthButton extends StatelessWidget {
     final child = buttonState == _ViewModelStateButton.isProcess
         ? const CircularProgressIndicator()
         : const Text('Авторизоваться');
-    return ElevatedButton(onPressed: onPressed, child: child);
+    return ElevatedButton(onPressed: () => onPressed?.call(context), child: child);
   }
 }
