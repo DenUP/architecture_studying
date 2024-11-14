@@ -13,8 +13,8 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       routes: {
         '/': (context) => Provider(
+              create: (context) => Userbloc(),
               child: const ExampleWidget(),
-              create: (_) => Userbloc(),
             ),
       },
     );

@@ -1,15 +1,17 @@
+import 'package:architecture_studying/domain/bloc/userbloc.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:provider/provider.dart';
 
 class ExampleWidget extends StatelessWidget {
   const ExampleWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: SafeArea(
           child: Center(
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             _AgeTitle(),
             _IncrementAge(),
@@ -26,7 +28,15 @@ class _AgeTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text('0');
+    final bloc = context.read<Userbloc>();
+    return StreamBuilder(
+      initialData: bloc.state,
+      stream: bloc.stream,
+      builder: (context, snapshot) {
+        final age = snapshot.requireData.currentuser.age;
+        return Text('$age');
+      },
+    );
   }
 }
 
@@ -35,7 +45,8 @@ class _IncrementAge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(onPressed: () {}, child: Text('+'));
+    final bloc = context.read<Userbloc>();
+    return ElevatedButton(onPressed: bloc.increment, child: Text('+'));
   }
 }
 
@@ -44,6 +55,7 @@ class _DecrementAge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(onPressed: () {}, child: Text('-'));
+    final bloc = context.read<Userbloc>();
+    return ElevatedButton(onPressed: bloc.decrement, child: Text('-'));
   }
 }
