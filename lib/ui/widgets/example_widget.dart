@@ -1,39 +1,61 @@
-import 'package:architecture_studying/service/auth_service.dart';
-import 'package:architecture_studying/ui/widgets/navigation/mainNavigation.dart';
+import 'package:architecture_studying/domain/bloc/userbloc.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-class _ViewModel extends ChangeNotifier {
-  final _authService = AuthService();
-
-  Future<void> onClickButtonLogOut(context) async {
-    await _authService.logOut();
-    Mainnavigation.showLoader(context);
-  }
-}
 
 class ExampleWidget extends StatelessWidget {
   const ExampleWidget({super.key});
 
-  static Widget create() {
-    return ChangeNotifierProvider(
-      create: (_) => _ViewModel(),
-      child: const ExampleWidget(),
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: SafeArea(
+          child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _AgeTitle(),
+            _IncrementAge(),
+            _DecrementAge(),
+          ],
+        ),
+      )),
     );
   }
+}
+
+class _AgeTitle extends StatelessWidget {
+  const _AgeTitle({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final model = context.read<_ViewModel>();
-    return Scaffold(
-      appBar: AppBar(
-        actions: [
-          ElevatedButton(
-              onPressed: () => model.onClickButtonLogOut(context),
-              child: Text('Выход'))
-        ],
-      ),
-      body: SafeArea(child: Text('Главная страница')),
+    final bloc = context.read<Userbloc>();
+    return StreamBuilder(
+      initialData: bloc.state,
+      stream: bloc.stream,
+      builder: (context, snapshot) {
+        final age = snapshot.requireData.currentuser.age;
+        return Text('$age');
+      },
     );
+  }
+}
+
+class _IncrementAge extends StatelessWidget {
+  const _IncrementAge({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final bloc = context.read<Userbloc>();
+    return ElevatedButton(onPressed: bloc.increment, child: Text('+'));
+  }
+}
+
+class _DecrementAge extends StatelessWidget {
+  const _DecrementAge({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final bloc = context.read<Userbloc>();
+    return ElevatedButton(onPressed: bloc.decrement, child: Text('-'));
   }
 }
