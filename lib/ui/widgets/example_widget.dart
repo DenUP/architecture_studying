@@ -1,4 +1,5 @@
 import 'package:architecture_studying/domain/bloc/userbloc.dart';
+import 'package:architecture_studying/domain/bloc/usercubit.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -28,12 +29,12 @@ class _AgeTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bloc = context.read<Userbloc>();
+    final bloc = context.read<Usercubit>();
     return StreamBuilder(
       initialData: bloc.state,
       stream: bloc.stream,
       builder: (context, snapshot) {
-        final age = snapshot.requireData.currentuser.age;
+        final age = snapshot.requireData.userCurrent.age;
         return Text('$age');
       },
     );
@@ -45,7 +46,7 @@ class _IncrementAge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bloc = context.read<Userbloc>();
+    final bloc = context.read<Usercubit>();
     return ElevatedButton(onPressed: bloc.increment, child: Text('+'));
   }
 }
@@ -55,7 +56,7 @@ class _DecrementAge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bloc = context.read<Userbloc>();
+    final bloc = context.read<Usercubit>();
     return ElevatedButton(onPressed: bloc.decrement, child: Text('-'));
   }
 }
